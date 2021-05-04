@@ -1,0 +1,7 @@
+v 0.0.1
+d 'MANYWEAKIV': weak-instruments robust test for linear IV regressions with many instruments.
+d Distribution-Date:   20210502
+d License: MIT
+d 
+F manyweakiv.ado
+F manyweakiv.sthlp

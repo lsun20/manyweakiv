@@ -1,0 +1,7 @@
+v 0.0.1
+d Materials by Liyang Sun
+d https://github.com/lsun20/manyweakiv
+
+d 'manyweakiv': weak-instruments robust test for linear IV regressions with many instruments.
+
+p manyweakiv
