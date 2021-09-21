@@ -1,4 +1,4 @@
-*! version 0.0  25apr2021  Liyang Sun, lsun20@mit.edu
+*! version 0.0  21sep2021  Liyang Sun, lsun20@mit.edu
 
 capture program drop manyweakiv
 program define manyweakiv, eclass sortpreserve
@@ -52,10 +52,10 @@ program define manyweakiv, eclass sortpreserve
 	** move to mata for matrix calculation
 	mata: Sigma_fun("`instr_partialed'","`yhat'","`y'","`xhat'","`x'","`h'")
 
-	dis "The analytical solution to the jackknife AR test inversion are:"
+// 	dis "The analytical solution to the jackknife AR test inversion are:"
 // 	tempname roots Sigma1
-	matrix list r(roots)
-	matrix list r(Sigma1)
+// 	matrix list r(roots)
+// 	matrix list r(Sigma1)
 // 	ereturn clear
 // 	ereturn matrix r r(roots)'
 // 	ereturn matrix S r(Sigma1)'
@@ -119,11 +119,24 @@ void Sigma_fun(
 			
 			Sigma1 = (Sigma1_gg_0, Sigma1_gg_1, Sigma1_gg_2, Sigma1_gg_3, Sigma1_gg_4)
 			Sigma1
-			XPX = X'*Xhat - X'*H_diag*X
-			YPY = Y'*Yhat - Y'*H_diag*Y
-			YPX = Y'*Xhat - Y'*H_diag*X
-// 			printf("Ybar' P Ybar=%g, %g, %g\n",YPY, YPX, XPX) 
+			XPX = X'*Xhat - X'*H_diag*X //a2
+			YPY = Y'*Yhat - Y'*H_diag*Y //a0
+			YPX = Y'*Xhat - Y'*H_diag*X //a1
+			// TODO: numerator is a quadratic inequality
+// 			printf("Ybar' P Ybar=%g, %g, %g, and determinant is %g\n",YPY, YPX, XPX, YPX^2 - 4*YPY*XPX) 
 
+			cnum = polyroots((YPY, -2*YPX, XPX)/sqrt(K)) // normalized by \sqrt(K)
+// 			cnum
+			cnum_real = J(1,0,.); cnum_nreal = 0; // count the number of real roots
+			for (i=1; i<=2; i++) {
+				if (isrealvalues(cnum[i]) == 1) { 
+					cnum_real = (cnum_real, Re(cnum[i]))
+					cnum_real = sort(cnum_real,1)
+					cnum_nreal++
+				}
+			}
+		
+			// Solving the quartic inequality where c_j is coef on jth order term
 			crit2 = 1.64^2 // TODO: add in user-specified critical value
 			c0 = 2*crit2*Sigma1_gg_0-YPY^2
 			c1 = 2*crit2*Sigma1_gg_1+4*YPY*YPX
@@ -131,23 +144,61 @@ void Sigma_fun(
 			c3 = 2*crit2*Sigma1_gg_3+4*YPX*XPX
 			c4 = 2*crit2*Sigma1_gg_4-XPX^2
 			c = polyroots((c0, c1, c2, c3, c4)/K) // normalized by K
-			creal = J(1,0,.)
-			printf("Coefficients are %g, %g, %g, %g, %g\n",c0, c1, c2, c3, c4) 
-			c
-			if ( c0>0) { 
-				st_matrix("r(roots)", creal) // unbounded CI
-				printf("Unbounded confidence interval\n")
-			} 
-			else {
-				for (i=1; i<=4; i++) {
-					if (isrealvalues(c[i]) == 1) { 
-						creal = (creal, Re(c[i]))
-// 						creal
-					}
-				st_matrix("r(roots)", creal)
+			creal = J(1,0,.); cnreal = 0; // count the number of real roots
+// 			printf("Coefficients are %g, %g, %g, %g, %g\n",c0, c1, c2, c3, c4) 
+// 			c
 
+			for (i=1; i<=4; i++) {
+				if (isrealvalues(c[i]) == 1) { 
+					creal = (creal, Re(c[i]))
+					creal = sort(creal,1)
+					cnreal++
+				}
+			st_matrix("r(roots)", creal) 
+			}
+			printf("The analytical solution to the jackknife AR test inversion are:\n")
+
+			if (c4 <0 & XPX >0) {
+				printf("Bounded interval, union of the following intervals\n")
+				cnum_real // bounded interval from quadratic numerator
+				creal // bounded interval from quartic inequality
+			}
+			if (c4 <0 & XPX <0) {
+				printf("Unbounded interval,union of the following intervals\n") 
+				printf("[-infty, %g ]U[ %g ,+\infty]\n",cnum_real[1],cnum_real[2])
+				// unbounded interval from quadratic numerator
+				creal
+			}
+			if (c4 >0 & XPX >0) {
+				printf("Unbounded interval,union of the following intervals\n") 
+				cnum_real // bounded interval from quadratic numerator
+				// unbounded interval from quadratic numerator
+				if (cnreal == 0) {
+					printf("[-infty,+\infty]\n")
+				}
+				if (cnreal == 2) {
+					printf("[-infty,%g]U[%g,+\infty]\n",creal[1],creal[2])
+				}
+				if (cnreal == 4) {
+					printf("[-infty,%g]U[%g,%g]U[%g,+\infty]\n",creal[1],creal[2],creal[3],creal[4])
 				}
 			}
+			if (c4 >0 & XPX <0) {
+				printf("Unbounded interval,union of the following intervals\n") 
+				printf("[-infty, %g ]U[ %g ,+\infty]",cnum_real[1],cnum_real[2])
+				// unbounded interval from quadratic numerator
+				if (cnreal == 0) {
+					printf("[-infty,+\infty]\n")
+				}
+				if (cnreal == 2) {
+					printf("[-infty,%g]U[%g,+\infty]\n",creal[1],creal[2])
+				}
+				if (cnreal == 4) {
+					printf("[-infty,%g]U[%g,%g]U[%g,+\infty]\n",creal[1],creal[2],creal[3],creal[4])
+				}
+			}
+			
+
 			st_matrix("r(Sigma1)", Sigma1)
 }
 end
