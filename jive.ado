@@ -1,4 +1,4 @@
-*! version 1.0.2  17apr2006
+*! version 1.0.3  27oct2021
 * Changelog at bottom
 
 program define jive, byable(onecall)
@@ -129,7 +129,7 @@ di as error `"the equal sign "=" is required"'
 	CheckOrder `end1cnt' `instcnt'
 	
 	// Now parse remaining syntax
-	syntax [if] [in] , [ Level(cilevel) UJIVE1 UJIVE2 JIVE1 JIVE2 Robust]
+	syntax [if] [in] , [ Level(cilevel) UJIVE1 UJIVE2 JIVE1 JIVE2 Robust Chao]
 	marksample touse
 	markout `touse' `lhs' `end1tsrv' `exogtsrv' `insttsrv'
 	
@@ -141,8 +141,8 @@ di as error `"the equal sign "=" is required"'
 	if "`ujive1'`ujive2'`jive1'`jive2'" == "" {
 		local ujive1 "ujive1"		// Default is UJIVE
 	}
-	
-	quietly {
+
+//	quietly {
 		count if `touse'
 		local N = r(N)
 		// First stage
@@ -176,17 +176,17 @@ di as error `"the equal sign "=" is required"'
 				scalar `r21'   = e(r2)
 			}
 		}
-		
+	
 		tempname beta V sigsq
 		if "`ujive1'`ujive2'" != "" {
-			CalcUJIVE "`lhs'" "`exogtsrv'" "`end1tsrv'" 	/*
+			CalcUJIVE "`lhs'" "`exogtsrv'" "`end1tsrv'" "`insttsrv'" "``z'hat'"	/*
 			       */ "`end1hat'" `touse' `beta' 	/*
-			       */ `V' `sigsq' "`robust'"
+			       */ `V' `sigsq' "`robust'" "`chao'"
 		}
 		else {
 			CalcJIVE "`lhs'" "`exogtsrv'" "`end1tsrv'" 	/*
 			      */ "`end1hat'" `touse' `beta' 	/*
-			      */ `V' `sigsq' "`robust'"
+			      */ `V' `sigsq' "`robust'" 
 		}
 		matrix colnames `beta' = `end1' `exog' _cons
 		matrix colnames `V' = `end1' `exog' _cons
@@ -219,7 +219,7 @@ di as error `"the equal sign "=" is required"'
 		}
 		eret local predict "regriv_p"
 		eret local cmd "jive"
-	}
+//	}
 
 	Display, level(`level')
 
@@ -290,7 +290,7 @@ end
 	
 program define CalcUJIVE
 
-	args lhs exog end1 end1hat touse beta V sigsq robust
+	args lhs exog end1 inst Pii end1hat touse beta V sigsq robust chao
 	
 	tempvar one
 	gen `one' = 1
@@ -317,6 +317,19 @@ program define CalcUJIVE
 	scalar `sigsq' = r(Var)*(r(N)-1) / (r(N) - `i')
 	if "`robust'" == "robust" {
 		matrix accum `xtpxt' = `end1hat' `exog' [iw = `resid'^2]
+		if "`chao'" == "chao" { //SS: does not work for exogenous vars
+			tempname M ZZ ZZinv UZZ PiiU
+			matrix accum `UZZ' = `inst' [iw = `resid'*`end1']
+			matrix accum `ZZ' = `inst'
+			matrix `ZZinv' = inv(`ZZ')
+			matrix `M' = trace(`ZZinv'*`UZZ'*`ZZinv'*`UZZ')
+			matrix accum `PiiU' = `Pii' [iw = `resid'*`end1']
+			matrix `M' = `M' - `PiiU'
+			matrix list `M'
+			matrix list `xtpxt'
+			dis as text "does not work because need to partial out exogenous vars"
+			matrix `xtpxt' = `xtpxt' + `M'
+		}
 	}
 	else {
 		matrix `xtpxt' = `sigsq'*`xtpxt'
