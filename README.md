@@ -20,6 +20,6 @@ To update the **manyweakiv**  package, execute the following in Stata:
 Documentation is included in the Stata help file that is installed along with the package.  An empirical example is provided in the help file.
 
 ## Authors and acknowledgment
-Brian Poi and Liyang Sun
+Liyang Sun
 
 Preprint of Mikusheva and Sun (2021) is available on [arXiv](https://arxiv.org/abs/2004.12445).
