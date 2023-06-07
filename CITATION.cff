@@ -1,0 +1,17 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: manyweakiv
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Liyang
+    family-names: Sun
+    orcid: 'https://orcid.org/0000-0003-2833-2085'
+abstract: >+
+  weak-instruments robust test for linear IV with many
+  instruments based on Mikusheva and Sun (2022).
+
