@@ -8,6 +8,7 @@ message: >-
   metadata from this file.
 type: Stata package
 doi: https://github.com/lsun20/manyweakiv
+date-released: 2023-06-07
 authors:
   - given-names: Liyang
     family-names: Sun
