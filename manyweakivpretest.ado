@@ -2,38 +2,64 @@
 *! version 0.0  25apr2021  Liyang Sun, lsun20@mit.edu
 
 
-capture program drop manyweaktest
-program define manyweaktest, eclass sortpreserve
+capture program drop manyweakivpretest
+program define manyweakivpretest, eclass sortpreserve
 	version 13 
-	syntax varlist(min=1 numeric) [if] [in] [aweight fweight], instr(varlist numeric ts fv) ///
-	[NOConstant COVARIATEs(varlist numeric ts fv)]
 	set more off
-//
+	
+	_iv_parse `0'
+        
+	local lhs `s(lhs)'
+	local endog `s(endog)'
+	local covariates `s(exog)'
+	local instr `s(inst)'
+	local 0 `s(zero)'
+	
+	syntax [if] [in] [aweight fweight], ///
+	[NOConstant]
+
 // 	* Mark sample (reflects the if/in conditions, and includes only nonmissing observations)
 // 	marksample touse
 // 	markout `touse' `by' `xq' `covariates', strok
-	* Parse the dependent variable
-	local endog: word 1 of `varlist'
-// 	local instr: list varlist - endog
 	tempname x h xtilde
-	
-// 		dis "`covariates'"
-dis "`noconstant'"
+
 	qui regress `endog' `covariates', `noconstant' // partial out controls from X (if empty, then partial out the constant term)
 	predict double `x', residual
 	
-	local instr_partialed ""
 // 	dis "`instr'"
-	qui mvreg `instr' = `covariates', `noconstant' // partial out controls from Z
-	local k = 1
-	foreach z of varlist `instr' {
-		tempvar z`k'
-// 			dis "`z'"
-		predict double `z`k'', residual equation(#`k') // partial out controls from Z
-		local instr_partialed "`instr_partialed' `z`k''"
-	local k = `k' + 1
+// 		dis "`covariates'"
+// 		dis "`noconstant'"
+	if "`covariates'" == "" & "`noconstant'" != "" {
+		local instr_partialed "`instr'" // nothing to partial out
+	} 
+	else if "`covariates'" == "" & "`noconstant'" == "" {
+		local instr_partialed ""
+		local k = 1
+		foreach z of varlist `instr' {
+			tempvar z`k'
+	// 			dis "`z'"
+			qui regress `z', `noconstant'
+			predict double `z`k'', residual // partial out the constant
+			local instr_partialed "`instr_partialed' `z`k''"
+		local k = `k' + 1
 
+		}
 	}
+	else {
+		qui mvreg `instr' = `covariates', `noconstant' // partial out controls from Z
+		local instr_partialed ""
+		local k = 1
+		foreach z of varlist `instr' {
+			tempvar z`k'
+	// 			dis "`z'"
+			predict double `z`k'', residual equation(#`k') // partial out controls from Z
+			local instr_partialed "`instr_partialed' `z`k''"
+		local k = `k' + 1
+
+		}
+	}
+	
+	
 	
 	** now the endogenous varibale and instruments have controls partialled out
 
