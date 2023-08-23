@@ -1,3 +1,4 @@
+*! version 0.1  23aug2023  Liyang Sun, lsun20@cemfi.es
 *! version 0.0  25apr2021  Liyang Sun, lsun20@mit.edu
 
 
@@ -23,18 +24,16 @@ dis "`noconstant'"
 	
 	local instr_partialed ""
 // 	dis "`instr'"
+	qui mvreg `instr' = `covariates', `noconstant' // partial out controls from Z
 	local k = 1
 	foreach z of varlist `instr' {
 		tempvar z`k'
 // 			dis "`z'"
-		qui regress `z' `covariates', `noconstant' // partial out controls from Z
-		predict double `z`k'', residual
+		predict double `z`k'', residual equation(#`k') // partial out controls from Z
 		local instr_partialed "`instr_partialed' `z`k''"
 	local k = `k' + 1
 
 	}
-
-	
 	
 	** now the endogenous varibale and instruments have controls partialled out
 
@@ -89,8 +88,8 @@ void Fhat_fun(
 				PP_off[i]=0
 				Sigma1_hh = Sigma1_hh + XMX[i]*PP_off'*XMX
 			}
-
 			Fhat = (X'*Zhat - sum(X:*X:*H))/sqrt(K)/sqrt(2*Sigma1_hh/K)
+// 			Fhat
 			st_numscalar("r(F)", Fhat)
 			st_numscalar("r(Sigma1_hh)", Sigma1_hh)
 }
