@@ -11,8 +11,8 @@
 
 {p2colset 5 19 21 2}{...}
 {p2col :{hi:manyweakiv} {hline 2}}
-implements the weak-identification robust jackknife AR test from Mikusheva and Sun (2021).  
-The companying command {helpb manyweaktest} implements a new pre-test that is 
+implements the weak-identification robust jackknife AR test from Mikusheva and Sun (2022).  
+The companying command {helpb manyweakivpretest} implements a new pre-test that is 
 analogous to analogous to that of Stock and Yogo (2005) first stage F test,
  but robust to many instruments and heteroscedasticity.
 {p_end}
@@ -28,7 +28,7 @@ analogous to analogous to that of Stock and Yogo (2005) first stage F test,
  [{it:options} {opth c:ovariates(manyweakiv##covariates:varlist)}]
  
 {p 8 15 2}
-{cmd:manyweaktest}
+{cmd:manyweakivpretest}
 {x} {ifin}
 {weight} {cmd:,} {opth i:nstr(manyweakiv##instr:variable)}
             {opt n:oconstant} 
@@ -54,7 +54,7 @@ where {it:x} is a scalar endogeneous variable.
 {syntab :Saved Output}
 {pstd}
 {opt manyweakiv} reports the jackknife AR confidence interval via analytical test inversion.  
-{opt manyweaktest} reports the many-instruments F test.  
+{opt manyweakivpretest} reports the many-instruments F test.  
 In addition, it stores the following in {cmd:e()}:
 
 {synoptset 24 tabbed}{...}
@@ -77,7 +77,7 @@ This result has been obtained under the assumptions of homoscedasticity and
 for a fixed number of instruments.
 
 {pstd}
-{opt manyweaktest} implements a new F test that is valid under heteroscedasticity and many instruments.
+{opt manyweakivpretest} implements a new F test that is valid under heteroscedasticity and many instruments.
 Based on the result of this new many-instruments F test (cut-off at 4.14), applied researchers can switch between
 the 5% JIVE t-statistic (to be implemented) or 5% jackknife AR test (implemented in {opt manyweakiv})
 with the caveats analogous to Stock and Yogo (2005): 
@@ -103,7 +103,7 @@ Namely, the size of the two-step procedure are bounded within 15%.
 	
 	
 {pstd} We use many-instrument F test to assess instruments' strength.  As expected we have weak instruments.{p_end}
-{phang2}. {stata manyweaktest x, instr(g_*) covariates(w)}
+{phang2}. {stata manyweakivpretest x, instr(g_*) covariates(w)}
 
 {pstd} Simulate the outcome for illustrating the jackknife AR test, which as expected return unbounded confidence interval.{p_end}
 {phang2}. {stata gen y = 1*x + w + 0.5*v}{p_end}
@@ -121,8 +121,12 @@ the bugs that they encountered.
 
 {marker MS2022}{...}
 {phang}
-Mikusheva, A. and Sun, L. 2021.
-Inference with Many Weak Instruments
+Anna Mikusheva, Liyang Sun, Inference with Many Weak Instruments, The Review of Economic Studies, Volume 89, Issue 5, October 2022, Pages 2663–2686, Preprint.
+
+{marker MS2023}{...}
+{phang}
+Mikusheva, A. and Sun, L. 2023.
+Weak Identification with Many Instruments
 {p_end}
 
 
@@ -132,7 +136,7 @@ Inference with Many Weak Instruments
 {pstd}{opt manyweakiv} is not an official Stata command. It is a free contribution
 to the research community, like a paper. Please cite it as such: {p_end}
 
-{phang}Poi, B. and Sun, L., 2021.
+{phang}Sun, L., 2023.
 manyweakiv: weak-instruments robust test for linear IV regressions with many instruments.
 {browse "https://github.com/lsun20/manyweakiv":https://github.com/lsun20/manyweakiv}.
 
