@@ -29,10 +29,12 @@ analogous to analogous to that of Stock and Yogo (2005) first stage F test,
  
 {p 8 15 2}
 {cmd:manyweakivpretest}
-{x} {ifin}
-{weight} {cmd:,} {opth i:nstr(manyweakiv##instr:variable)}
-            {opt n:oconstant} 
- [{it:options} {opth c:ovariates(manyweakiv##covariates:varlist)}]
+{y}
+{cmd:(}{it:{help varlist:x}} {cmd:=}
+        {it:{help varlist:instr}}{cmd:)} 
+         [{it:{help varlist:covariates}}] {ifin}
+{weight} {cmd:,} 
+ [{it:options} {opt n:oconstant} ]
 
 {pstd}
 where {it:x} is a scalar endogeneous variable.
@@ -100,13 +102,12 @@ Namely, the size of the two-step procedure are bounded within 15%.
 {phang2}. {stata gen v = rnormal()}{p_end}
 {phang2}. {stata gen w = rnormal()}{p_end}
 {phang2}. {stata gen x = 1 + w + v}{p_end}
-	
+{phang2}. {stata gen y = 1*x + w + 0.5*v}{p_end}	
 	
 {pstd} We use many-instrument F test to assess instruments' strength.  As expected we have weak instruments.{p_end}
-{phang2}. {stata manyweakivpretest x, instr(g_*) covariates(w)}
+{phang2}. {stata manyweakivpretest y (x = g_*) w}
 
 {pstd} Simulate the outcome for illustrating the jackknife AR test, which as expected return unbounded confidence interval.{p_end}
-{phang2}. {stata gen y = 1*x + w + 0.5*v}{p_end}
 {phang2}. {stata manyweakiv y x, instr(g_*) covariates(w)}{p_end}
 
 {marker acknowledgements}{...}
