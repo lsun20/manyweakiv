@@ -24,7 +24,7 @@ program define manyweakivpretest, eclass sortpreserve
 	tempname x h xtilde
 
 	qui regress `endog' `covariates', `noconstant' // partial out controls from X (if empty, then partial out the constant term)
-	predict double `x', residual
+	qui predict double `x', residual
 	
 // 	dis "`instr'"
 // 		dis "`covariates'"
@@ -39,7 +39,7 @@ program define manyweakivpretest, eclass sortpreserve
 			tempvar z`k'
 	// 			dis "`z'"
 			qui regress `z', `noconstant'
-			predict double `z`k'', residual // partial out the constant
+			qui predict double `z`k'', residual // partial out the constant
 			local instr_partialed "`instr_partialed' `z`k''"
 		local k = `k' + 1
 
@@ -52,7 +52,7 @@ program define manyweakivpretest, eclass sortpreserve
 		foreach z of varlist `instr' {
 			tempvar z`k'
 	// 			dis "`z'"
-			predict double `z`k'', residual equation(#`k') // partial out controls from Z
+			qui predict double `z`k'', residual equation(#`k') // partial out controls from Z
 			local instr_partialed "`instr_partialed' `z`k''"
 		local k = `k' + 1
 
@@ -65,17 +65,37 @@ program define manyweakivpretest, eclass sortpreserve
 
 	** first-stage regression
 	qui regress `x' `instr_partialed', nocons // the constant term is already partialled out 
-	predict double `h', hat // leverage Z_i'(Z'Z)^-1 Z_i
-	predict double `xtilde', // predicted value Z\hat{pi}
+	qui predict double `h', hat // leverage Z_i'(Z'Z)^-1 Z_i
+	qui predict double `xtilde', // predicted value Z\hat{pi}
 	** move to mata for matrix calculation
 	mata: Fhat_fun("`instr_partialed'","`xtilde'","`x'","`h'")
+	di
+	di in smcl "{help manyweakiv##manyweakiv:Many weak identification test}"
 
-	dis "The many-instruments F test (5%) rejects if following statistic is greater than 4.14:"
-	dis `r(F)' 
-	
+	if `r(F)' == . {
+	// if Sigma1_hh is negative, it is also a situation that the asymptotic approximation underlying the test fails and hints strong identification
+		dis in gr "Unfortunately the asymptotic approximation underlying this test fails, which might be due to strong identification. Please consult alternative solutions."
+	} 
+	else {
+			di in ye "The many-instruments F test statistic" _col(65) %8.2f `r(F)'
+	di
+
+	di in gr "Critical values for:"
+	di in gr "Ho:   weakly identified so that a nominal 5% JIVE t-test has "
+	di in gr _col(30) "maximal actual size larger than 10%" in ye _col(60) %6.2f 4.14
+	di in gr "Ho:   weakly identified so that a nominal 2% JIVE t-test has "
+	di in gr _col(30) "maximal actual size larger than 5%" in ye _col(60) %6.2f 9.98
+    di in gr "Source: Mikusheva and Sun (2022). "
+	di in gr "NB: Critical values are for heteroskedatic errors."
+	di
+	}
 	ereturn clear
 	ereturn scalar Fhat = `r(F)'
 	ereturn scalar Sigma_hh = `r(Sigma1_hh)'
+	
+
+
+
 
 end
 
@@ -114,6 +134,7 @@ void Fhat_fun(
 				PP_off[i]=0
 				Sigma1_hh = Sigma1_hh + XMX[i]*PP_off'*XMX
 			}
+// 			Sigma1_hh
 			Fhat = (X'*Zhat - sum(X:*X:*H))/sqrt(K)/sqrt(2*Sigma1_hh/K)
 // 			Fhat
 			st_numscalar("r(F)", Fhat)
