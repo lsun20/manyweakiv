@@ -128,8 +128,8 @@ Anna Mikusheva, Liyang Sun, Inference with Many Weak Instruments, The Review of 
 
 {marker MS2023}{...}
 {phang}
-Mikusheva, A. and Sun, L. 2023.
-Weak Identification with Many Instruments
+Mikusheva, A. and Sun, L. 2023. 
+Weak Identification with Many Instruments. arXiv:2308.09535 [econ.EM]
 {p_end}
 
 
