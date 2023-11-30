@@ -158,7 +158,7 @@ void Sigma_fun(
 					cnum_nreal++
 				}
 			}
-		
+			cnum_real = sort(cnum_real',1)'
 			// Solving the quartic inequality where c_j is coef on jth order term
 			crit2 = 1.64^2 // TODO: add in user-specified critical value
 			c0 = 2*crit2*Sigma1_gg_0-YPY^2
@@ -174,50 +174,65 @@ void Sigma_fun(
 			for (i=1; i<=4; i++) {
 				if (isrealvalues(c[i]) == 1) { 
 					creal = (creal, Re(c[i]))
-					creal = sort(creal,1)
 					cnreal++
 				}
+			creal = sort(creal',1)'
+
 			st_matrix("r(roots)", creal) 
 			}
 			printf("The analytical solution to the jackknife AR test inversion are:\n")
 
 			if (c4 <0 & XPX >0) {
 				printf("Bounded interval, union of the following intervals\n")
-				cnum_real // bounded interval from quadratic numerator
-				creal // bounded interval from quartic inequality
+				if (cnum_nreal == 2) {
+						printf("[%9.0g , %9.0g]\n",cnum_real[1],cnum_real[2])
+				}
+// 				cnum_real // bounded interval from quadratic numerator (can be empty tho)
+// 				creal // bounded interval from quartic inequality
+				printf("[%9.0g , %9.0g]\n",creal[1],creal[2])
+
 			}
 			if (c4 <0 & XPX <0) {
 				printf("Unbounded interval,union of the following intervals\n") 
-				printf("[-infty, %g ]U[ %g ,+\infty]\n",cnum_real[1],cnum_real[2])
+				if (cnum_nreal == 2) {
+					printf("[-inf, %g ]U[ %g ,+inf]\n",cnum_real[1],cnum_real[2])
+				}
 				// unbounded interval from quadratic numerator
-				creal
+// 				creal
+				printf("[%9.0g , %9.0g]\n",creal[1],creal[2])
+
 			}
 			if (c4 >0 & XPX >0) {
 				printf("Unbounded interval,union of the following intervals\n") 
-				cnum_real // bounded interval from quadratic numerator
-				// unbounded interval from quadratic numerator
+// 				cnum_real // bounded interval from quadratic numerator
+				if (cnum_nreal == 2) {
+						printf("[%9.0g , %9.0g]\n",cnum_real[1],cnum_real[2])
+				}				
+				// unbounded interval from quartic numerator
 				if (cnreal == 0) {
-					printf("[-infty,+\infty]\n")
+					printf("[-inf,+inf]\n")
 				}
 				if (cnreal == 2) {
-					printf("[-infty,%g]U[%g,+\infty]\n",creal[1],creal[2])
+					printf("[-inf,%g]U[%g,+inf]\n",creal[1],creal[2])
 				}
 				if (cnreal == 4) {
-					printf("[-infty,%g]U[%g,%g]U[%g,+\infty]\n",creal[1],creal[2],creal[3],creal[4])
+					printf("[-inf,%g]U[%g,%g]U[%g,+inf]\n",creal[1],creal[2],creal[3],creal[4])
 				}
 			}
 			if (c4 >0 & XPX <0) {
-				printf("Unbounded interval,union of the following intervals\n") 
-				printf("[-infty, %g ]U[ %g ,+\infty]",cnum_real[1],cnum_real[2])
+				printf("Unbounded interval,union of the following intervals\n")
+				if (cnum_nreal == 2) {
+					printf("[-inf, %g ]U[ %g ,+inf]",cnum_real[1],cnum_real[2])
+				}
 				// unbounded interval from quadratic numerator
 				if (cnreal == 0) {
-					printf("[-infty,+\infty]\n")
+					printf("[-inf,+inf]\n")
 				}
 				if (cnreal == 2) {
-					printf("[-infty,%g]U[%g,+\infty]\n",creal[1],creal[2])
+					printf("[-inf,%g]U[%g,+inf]\n",creal[1],creal[2])
 				}
 				if (cnreal == 4) {
-					printf("[-infty,%g]U[%g,%g]U[%g,+\infty]\n",creal[1],creal[2],creal[3],creal[4])
+					printf("[-inf,%g]U[%g,%g]U[%g,+inf]\n",creal[1],creal[2],creal[3],creal[4])
 				}
 			}
 			
