@@ -21,11 +21,13 @@ analogous to analogous to that of Stock and Yogo (2005) first stage F test,
 {marker syntax}{title:Syntax}
 
 {p 8 15 2}
-{cmd:manyweakiv}
-{y} {x} {ifin}
-{weight} {cmd:,} {opth i:nstr(manyweakiv##instr:variable)}
-            {opt n:oconstant} 
- [{it:options} {opth c:ovariates(manyweakiv##covariates:varlist)}]
+{cmd:manyweakivtest}
+{y}
+{cmd:(}{it:{help varlist:x}} {cmd:=}
+        {it:{help varlist:instr}}{cmd:)} 
+         [{it:{help varlist:covariates}}] {ifin}
+{weight} {cmd:,} 
+ [{it:options} {opt n:oconstant} ]
  
 {p 8 15 2}
 {cmd:manyweakivpretest}
@@ -47,15 +49,15 @@ where {it:x} is a scalar endogeneous variable.
 {synoptline}
 {syntab :Must specify}
 {marker instr}{...}
-{synopt :{opth inst(varname)}}specifies the list of (excluded) instruments.{p_end}
+{synopt :{opt instr}}specifies the list of (excluded) instruments.{p_end}
 
 {syntab :Optional}
 {synopt :{opt noconstant}}specifies whether an intercept is included (default includes an intercept).{p_end}
-{synopt :{opth covariate:s(varlist)}}specifies the list of controls, i.e., included instruments. {p_end}
+{synopt :{opt covariates}}specifies the list of controls, i.e., included instruments. {p_end}
 
 {syntab :Saved Output}
 {pstd}
-{opt manyweakiv} reports the jackknife AR confidence interval via analytical test inversion.  
+{opt manyweakivtest} reports the jackknife AR confidence interval via analytical test inversion.  
 {opt manyweakivpretest} reports the many-instruments F test.  
 In addition, it stores the following in {cmd:e()}:
 
@@ -81,7 +83,7 @@ for a fixed number of instruments.
 {pstd}
 {opt manyweakivpretest} implements a new F test that is valid under heteroscedasticity and many instruments.
 Based on the result of this new many-instruments F test (cut-off at 4.14), applied researchers can switch between
-the 5% JIVE t-statistic (to be implemented) or 5% jackknife AR test (implemented in {opt manyweakiv})
+the 5% JIVE t-statistic (to be implemented) or 5% jackknife AR test (implemented in {opt manyweakivtest})
 with the caveats analogous to Stock and Yogo (2005): 
 Namely, the size of the two-step procedure are bounded within 15%.
 
@@ -108,7 +110,7 @@ Namely, the size of the two-step procedure are bounded within 15%.
 {phang2}. {stata manyweakivpretest y (x = g_*) w}
 
 {pstd} Simulate the outcome for illustrating the jackknife AR test, which as expected return unbounded confidence interval.{p_end}
-{phang2}. {stata manyweakiv y x, instr(g_*) covariates(w)}{p_end}
+{phang2}. {stata manyweakivtest y (x = g_*) w}{p_end}
 
 {marker acknowledgements}{...}
 {title:Acknowledgements}
