@@ -1,39 +1,62 @@
 *! version 0.0  21sep2021  Liyang Sun, lsun20@mit.edu
 
-capture program drop manyweakiv
-program define manyweakiv, eclass sortpreserve
+capture program drop manyweakivtest
+program define manyweakivtest, eclass sortpreserve
 	version 13 
-	syntax varlist(min=1 numeric) [if] [in] [aweight fweight], instr(varlist numeric ts fv) ///
-	[NOConstant COVARIATEs(varlist numeric ts fv)]
 	set more off
+	
+	_iv_parse `0'
+        
+	local depvar `s(lhs)'
+	local endog `s(endog)'
+	local covariates `s(exog)'
+	local instr `s(inst)'
+	local 0 `s(zero)'
+	
+	syntax [if] [in] [aweight fweight], ///
+	[NOConstant]
 //
 // 	* Mark sample (reflects the if/in conditions, and includes only nonmissing observations)
 // 	marksample touse
 // 	markout `touse' `by' `xq' `covariates', strok
 	* Parse the dependent variable
-	dis "`varlist'"
-	local depvar: word 1 of `varlist'
-	local endog: list varlist - depvar
 	tempname h y yhat x xhat
 	
-		dis "`covariates'"
+	* dis "`covariates'"
 	qui regress `depvar' `covariates', `noconstant' // partial out controls from Y (if empty, then partial out the constant term)
-	predict double `y', residual
+	qui predict double `y', residual
 
 	qui regress `endog' `covariates', `noconstant' // partial out controls from X (if empty, then partial out the constant term)
-	predict double `x', residual
+	qui predict double `x', residual
 	
-	local instr_partialed ""
-// 	dis "`instr'"
-	local k = 1
-	foreach z of varlist `instr' {
-		tempvar z`k'
-// 			dis "`z'"
-		qui regress `z' `covariates', `noconstant' // partial out controls from Z
-		predict double `z`k'', residual
-		local instr_partialed "`instr_partialed' `z`k''"
-	local k = `k' + 1
+	if "`covariates'" == "" & "`noconstant'" != "" {
+		local instr_partialed "`instr'" // nothing to partial out
+	} 
+	else if "`covariates'" == "" & "`noconstant'" == "" {
+		local instr_partialed ""
+		local k = 1
+		foreach z of varlist `instr' {
+			tempvar z`k'
+	// 			dis "`z'"
+			qui regress `z', `noconstant'
+			qui predict double `z`k'', residual // partial out the constant
+			local instr_partialed "`instr_partialed' `z`k''"
+		local k = `k' + 1
 
+		}
+	}
+	else {
+		qui mvreg `instr' = `covariates', `noconstant' // partial out controls from Z
+		local instr_partialed ""
+		local k = 1
+		foreach z of varlist `instr' {
+			tempvar z`k'
+	// 			dis "`z'"
+			qui predict double `z`k'', residual equation(#`k') // partial out controls from Z
+			local instr_partialed "`instr_partialed' `z`k''"
+		local k = `k' + 1
+
+		}
 	}
 
 	
@@ -42,12 +65,12 @@ program define manyweakiv, eclass sortpreserve
 
 	** first-stage regression
 	qui regress `x' `instr_partialed', nocons // the constant term is already partialled out 
-	predict double `h', hat // leverage Z_i'(Z'Z)^-1 Z_i
-	predict double `xhat', // predicted value Z\hat{\pi}
+	qui predict double `h', hat // leverage Z_i'(Z'Z)^-1 Z_i
+	qui predict double `xhat', // predicted value Z\hat{\pi}
 	
 	** reduced-form regression
 	qui regress `y' `instr_partialed', nocons // the constant term is already partialled out 
-	predict double `yhat', // predicted value Z\hat{\delta}
+	qui predict double `yhat', // predicted value Z\hat{\delta}
 	
 	** move to mata for matrix calculation
 	mata: Sigma_fun("`instr_partialed'","`yhat'","`y'","`xhat'","`x'","`h'")
@@ -118,7 +141,7 @@ void Sigma_fun(
 			}
 			
 			Sigma1 = (Sigma1_gg_0, Sigma1_gg_1, Sigma1_gg_2, Sigma1_gg_3, Sigma1_gg_4)
-			Sigma1
+// 			Sigma1
 			XPX = X'*Xhat - X'*H_diag*X //a2
 			YPY = Y'*Yhat - Y'*H_diag*Y //a0
 			YPX = Y'*Xhat - Y'*H_diag*X //a1
