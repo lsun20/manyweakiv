@@ -153,4 +153,4 @@ manyweakiv: weak-instruments robust test for linear IV regressions with many ins
 {title:Author}
 
 {pstd}Liyang Sun{p_end}
-{pstd}lsun20@mit.edu{p_end}
+{pstd}liyang.sun@ucl.ac.uk{p_end}
