@@ -81,12 +81,7 @@ This result has been obtained under the assumptions of homoscedasticity and
 for a fixed number of instruments.
 
 {pstd}
-{opt manyweakivpretest} implements a new F test that is valid under heteroscedasticity and many instruments.
-Based on the result of this new many-instruments F test (cut-off at 4.14), applied researchers can switch between
-the 5% JIVE t-statistic (to be implemented) or 5% jackknife AR test (implemented in {opt manyweakivtest})
-with the caveats analogous to Stock and Yogo (2005): 
-Namely, the size of the two-step procedure are bounded within 15%.
-
+Mikusheva and Sun (2022) introduces a new F test that is valid under heteroscedasticity and many instruments.  Based on the result of this new F test (implemented in {opt manyweakivpretest}), applied researchers can switch between the 5% JIVE t-statistic or 5% jackknife AR test (implemented in {opt manyweakivtest}) with the caveats analogous to Stock and Yogo (2005):  Namely, the size of the two-step procedure are bounded within 15%.
 
 {marker examples}{...}
 {title:Examples}
