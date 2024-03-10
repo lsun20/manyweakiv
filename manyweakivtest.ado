@@ -46,23 +46,37 @@ program define manyweakivtest, eclass sortpreserve
 		}
 	}
 	else {
-		qui mvreg `instr' = `covariates', `noconstant' // partial out controls from Z
-		local instr_partialed ""
-		local k = 1
-		foreach z of varlist `instr' {
-			tempvar z`k'
-	// 			dis "`z'"
-			qui predict double `z`k'', residual equation(#`k') // partial out controls from Z
-			local instr_partialed "`instr_partialed' `z`k''"
-		local k = `k' + 1
-
+		capture qui mvreg `instr' = `covariates', `noconstant' // partial out controls from Z
+		if c(rc) == 0 {
+			local instr_partialed ""
+			local k = 1
+			foreach z of varlist `instr' {
+				tempvar z`k'
+		// 			dis "`z'"
+				qui predict double `z`k'', residual equation(#`k') // partial out controls from Z
+				local instr_partialed "`instr_partialed' `z`k''"
+				local k = `k' + 1
+				}
+			}
+		else { // if mvreg cannot work due to memory constraints, loop over the instruments
+			dis in gr "Unfortunately {help mvreg} has encountered an issue, likely due to the high dimensionality of instruments and/or covariates. Proceed with partialing out covariates from the instruments in a loop. Please be aware that this loop may take some time to complete."
+			local instr_partialed ""
+			local k = 1
+			foreach z of varlist `instr' {
+				tempvar z`k'
+		// 			dis "`z'"
+				qui regress `z' `covariates', `noconstant' // partial out controls from Z
+				predict double `z`k'', residual
+				local instr_partialed "`instr_partialed' `z`k''"
+				local k = `k' + 1
+			}
 		}
 	}
 
 	
-	
 	** now the dep, endogenous varibale and instruments have controls partialled out
-
+	di
+	di in smcl "Calculate the 95% confidence intervals using {help manyweakiv##manyweakiv:jackknife AR test}"
 	** first-stage regression
 	qui regress `x' `instr_partialed', nocons // the constant term is already partialled out 
 	qui predict double `h', hat // leverage Z_i'(Z'Z)^-1 Z_i
