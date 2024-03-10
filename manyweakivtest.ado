@@ -173,6 +173,7 @@ void Sigma_fun(
 				}
 			}
 			cnum_real = sort(cnum_real',1)'
+			st_matrix("r(roots_quadratic)", cnum_real) 
 			// Solving the quartic inequality where c_j is coef on jth order term
 			crit2 = 1.64^2 // TODO: add in user-specified critical value
 			c0 = 2*crit2*Sigma1_gg_0-YPY^2
@@ -197,13 +198,26 @@ void Sigma_fun(
 			printf("The analytical solution to the jackknife AR test inversion are:\n")
 
 			if (c4 <0 & XPX >0) {
-				printf("Bounded interval, union of the following intervals\n")
-				if (cnum_nreal == 2) {
-						printf("[%9.0g , %9.0g]\n",cnum_real[1],cnum_real[2])
+				if (cnreal == 0 & cnum_nreal == 0) {
+					"Empty"
 				}
+				else if (cnreal == 0 & cnum_nreal == 2) {
+					printf("Bounded interval\n")
+					printf("[%9.0g , %9.0g]\n",cnum_real[1],cnum_real[2])
+				}
+				else if (cnreal == 2 & cnum_nreal == 2) {
+					printf("Bounded interval, union of the following intervals\n")
+					printf("[%9.0g , %9.0g]\n",cnum_real[1],cnum_real[2])
+					printf("[%9.0g , %9.0g]\n",creal[1],creal[2])
+				}
+				else if (cnreal == 2 & cnum_nreal == 0) {
+					printf("Bounded interval\n")
+					printf("[%9.0g , %9.0g]\n",creal[1],creal[2])
+				}
+// 				cnum_nreal
 // 				cnum_real // bounded interval from quadratic numerator (can be empty tho)
-// 				creal // bounded interval from quartic inequality
-				printf("[%9.0g , %9.0g]\n",creal[1],creal[2])
+// 				cnreal
+//  			creal // bounded interval from quartic inequality
 
 			}
 			if (c4 <0 & XPX <0) {
